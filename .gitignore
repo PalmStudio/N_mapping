@@ -2,5 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-data
-output
+0-data
+*.html
+*.docx

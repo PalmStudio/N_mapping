@@ -8,10 +8,10 @@ library(data.table)
 library(xlsx)
 
 # Reading the xlsx file direcly:
-# df= read.xlsx(file = "data/Nassimilationmapping.ppt.xlsx", sheetName = "N_Ass_mapping")
+# df= read.xlsx(file = "0-data/Nassimilationmapping.ppt.xlsx", sheetName = "N_Ass_mapping")
 
 df=
-  fread(input = "data/Nassimilationmapping.csv", data.table = FALSE)%>%
+  fread(input = "0-data/Nassimilationmapping.csv", data.table = FALSE)%>%
   rename(N_content= `N(%)`)
 
 

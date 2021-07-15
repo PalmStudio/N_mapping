@@ -61,7 +61,7 @@ The data comes from a LiCOR 6400. The table we import here was extracted from th
 
 ```{r}
 df=
-  fread(input = "data/Nassimilationmapping.csv", data.table = FALSE)%>%
+  fread(input = "0-data/Nassimilationmapping.csv", data.table = FALSE)%>%
   rename(Ncontent= `N(%)`)
 df$Position= factor(df$Position, levels= c("a","ab", "b", "1/4 bc", "1/2 bc"))
 ```
