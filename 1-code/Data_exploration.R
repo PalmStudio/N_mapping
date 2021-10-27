@@ -20,6 +20,8 @@ head(df)
 View(df)
 
 # Exploring the data:
+plot(x= df$N_content, y= df$SPAD)
+plot(y= df$N_content, x= df$SPAD)
 
 plot(x= df$N_content, y= df$Rank)
 plot(df$N_content, df$Photo)

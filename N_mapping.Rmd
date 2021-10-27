@@ -3,12 +3,6 @@ title: "Photosynthesis measurement protocol"
 author: "R. Vezy and Reni Subawati"
 date: "16/12/2019"
 output:
-  word_document:
-    toc: yes
-    toc_depth: '3'
-  pdf_document:
-    toc: yes
-    toc_depth: '3'
   html_document:
     code_folding: hide
     fig_caption: yes
@@ -16,6 +10,12 @@ output:
     toc: yes
     toc_depth: 3
     toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+  word_document:
+    toc: yes
+    toc_depth: '3'
 editor_options:
   chunk_output_type: console
 ---
@@ -24,7 +24,7 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(tidyverse)
 library(data.table)
-source("code/helpers.R")
+source("1-code/helpers.R")
 ```
 
 # Introduction
@@ -63,13 +63,34 @@ The data comes from a LiCOR 6400. The table we import here was extracted from th
 df=
   fread(input = "0-data/Nassimilationmapping.csv", data.table = FALSE)%>%
   rename(Ncontent= `N(%)`)
-df$Position= factor(df$Position, levels= c("a","ab", "b", "1/4 bc", "1/2 bc"))
+df$Position= factor(df$Position, levels= c("1/2 bc", "1/4 bc", "b", "ab", "a"))
 ```
 
 
-## N content according to leaf rank
+## N content ~ leaf rank + leaflet position for each palm
 
-The N content was measured for several leaf ranks. Let's investigate for the effect of the rank on leaf nitrogen content:  
+The N content of the leaf is highly heterogeneous depending on the leaflet position on young leaves (rank < 10), with higher concentration found at the tip. It seems more homogeneous for mature leaves though. 
+
+```{r}
+df%>%
+  filter(Rank != 26)%>%
+  group_by(Palm, Rank,`Position nb`)%>%
+  na.omit()%>%
+  ggplot(aes(x= Rank, y= Ncontent, color = `Position nb`))+
+  geom_line(aes(group = `Position nb`))+
+  geom_point(aes(group = `Position nb`))+
+  geom_smooth(method = "lm")+
+  facet_wrap(vars(Palm), nrow = 1)+
+  ylab("N content (%)")+
+  xlab("Leaf rank")+
+  ggtitle("Effect of rank and leaflet position on leaf N content for each palm")
+```
+
+The N content steadily decrease with increase leaf age, from more than 3% for young leaves down to around 2% for the older (~ rank 50). The maximum and minimum values depend on the palm, and the slope too. This is a well known effect that is due to nitrogen remobilization from old leaves to younger leaves.
+
+## N content according to leaf rank, all palms
+
+Let's investigate if we can find a general rule for the effect of the rank on leaf nitrogen content:  
 
 ```{r}
 ggplot(data= df, aes(x= as.factor(Rank), y= Ncontent))+
@@ -80,23 +101,7 @@ ggplot(data= df, aes(x= as.factor(Rank), y= Ncontent))+
   ggtitle("Effect of Rank (a proxy for age) on N content of the leaf")
 ```
 
-The nitrogen content decrease with increasing leaf rank, which is itself a proxy for leaf age. The same effect is observed for both progenies (progeny 5, up and progeny 6, down). This is a well known effect that is due to nitrogen remobilization from old leaves to younger leaves.
-
-## N content according to leaflet position
-
-The N content was measured on five leaflets with different positions along the leaf. Does the position has an effect on the leaf nitrogen content ? 
-
-```{r}
-ggplot(data= df, aes(x= Position, y= Ncontent))+
-  geom_boxplot(notch = TRUE)+
-  facet_grid(vars(Progeny))+
-  ylab("N content (%)")+
-  xlab("Leaflet position on the leaf")+
-  ggtitle("Effect of the leaflet position on N content")
-```
-
-The figure above shows that even though the variability seems to decrease from `a` towards `1/2 bc`, the nitrogen content remains quite similar between positions (the notches are almost all overlapping) for both progenies.
-
+The nitrogen content decrease with increasing leaf rank, which is itself a proxy for leaf age. The same effect is observed for both progenies (progeny 5, up and progeny 6, down).
 
 ## Modelling N distribution
 
@@ -140,17 +145,22 @@ ggplot(data= df, aes(x= as.factor(Rank), y= Photo))+
 
 The figure above shows clearly that photosynthesis decrease with increasing leaf rank for both progenies, as for the nitrogen content.
 
-## Photosynthesis according to leaflet position
+## Photosynthesis according to leaflet position and leaf rank for each palm
 
-The photosynthesis was measured on five leaflets with different positions along the leaf. Does the position has an effect on it ? 
+The photosynthesis was measured on five leaflets with different positions along the leaf. Similar to what we found with nitrogen content, the leaflet position influence the photosynthesis. This seems to be corelated to the nitrogen content. The leaf ran has a similar effect too.
 
 ```{r}
-ggplot(data= df, aes(x= Position, y= Photo))+
-  geom_boxplot(notch = TRUE)+
+df%>%
+  group_by(Palm, Rank,`Position nb`)%>%
+  na.omit()%>%
+  ggplot(aes(x= Rank, y= Photo, color = `Position nb`))+
+  geom_line(aes(group = `Position nb`))+
+  geom_point(aes(group = `Position nb`))+
+  geom_smooth(method = "lm")+
+  facet_wrap(vars(Palm), nrow = 1)+
   ylab("Photosynthesis (umol m-2 s-1)")+
-  xlab("Leaflet position on the leaf")+
-  facet_grid(vars(Progeny))+
-  ggtitle("Effect of the leaflet position on photosynthesis")
+  xlab("Leaf rank")+
+  ggtitle("Effect of rank and leaflet position on photosynthesis for each palm")
 ```
 
 The figure above shows the position of the leaflet on the leaf can influence the photosynthesis, with a maximum rate at point `b` in average, and lower going to the tip (point `a`) or the half-distance between `b` and `c` (`1/2 bc`).
